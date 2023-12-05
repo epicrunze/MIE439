@@ -4,6 +4,7 @@ from scipy.stats import linregress
 import numpy as np
 import os
 from collections import defaultdict
+import seaborn as sns
 
 AREA_OF_PORK = 0.000025
 
@@ -66,6 +67,7 @@ def calculate_y_mod(data, visualize=True):
     slope, intercept, r_value, p_value, std_er = linregress(np.array(data["strain"])[:max_idx], np.array(data["stress"])[:max_idx])
 
     if visualize:
+        sns.set()
         x = np.linspace(np.min(data["strain"]), np.max(data["strain"][max_idx]))
         y = x*slope + intercept
         plt.plot(data["strain"], data["stress"])
@@ -73,6 +75,7 @@ def calculate_y_mod(data, visualize=True):
         plt.xlabel("Strain (mm/mm)")
         plt.ylabel("Stress (MPa)")
         plt.legend()
+        plt.grid(True)
         plt.show()
 
     return slope
@@ -80,10 +83,9 @@ def calculate_y_mod(data, visualize=True):
 if __name__ == "__main__":
     
     # fn = "C:/Users/ryanr/Desktop/MIE439/01 - Experimental Data/TEST-neg_control_01/TEST-neg_control_01Data.csv"
-    root = "C:/Users/ryanr/Desktop/MIE439/01 - Experimental Data"
+    root = "C:/Users/runze/Desktop/MIE439/01 - Experimental Data"
 
     out = get_tests(root)
-    y_mod = []
     plot_vals = ["12", "15", "18", "21"]
     plot_x = []
     plot_y = []
@@ -92,14 +94,17 @@ if __name__ == "__main__":
         print(ting)
         if ting == "extra":
             continue
+        y_mod = []
         for fn in out[ting]:
             
             df = process_file(fn)
+            print(fn)
 
             # print(df.head(10))
             # plot_data(df)
             slope = calculate_y_mod(df, visualize=False)
             y_mod.append(slope)
+            print(slope)
 
             if ting in plot_vals:
                 plot_x.append(int(ting))
@@ -111,9 +116,11 @@ if __name__ == "__main__":
     slope, intercept, r_value, p_value, std_er = linregress(plot_x, plot_y)
     x = np.linspace(np.min(plot_x), np.max(plot_x))
     y = x*slope + intercept
+    sns.set()
     plt.plot(x, y, label=f"Linear Fit, r^2 = {r_value**2:.2f}")
-    plt.scatter(plot_x, plot_y, label="Data Points")
-    plt.xlabel("Concentration")
+    plt.scatter(plot_x, plot_y, label="Young's Modulus")
+    plt.xlabel("Concentration (mg/dL)")
     plt.ylabel("Young's Modulus (MPa)")
     plt.legend()
+    plt.grid(True)
     plt.show()
